@@ -40,6 +40,9 @@ public class User implements Serializable {
     @OneToMany
     private List<Issue> owned;
     
+    @OneToMany
+    private List<User> connections;
+    
     public User() {
         
     }
@@ -111,14 +114,7 @@ public class User implements Serializable {
     public List<Issue> getOwned() {
         return owned;
     }
-
-    public String getNick() {
-        return username;
-    }
-
-    public void setNick(String username) {
-        this.username = username;
-    }
+    
 
     public String getLastName() {
         return lastName;
@@ -148,6 +144,14 @@ public class User implements Serializable {
 
     public void setConfirmPassword(String confirmPassword) {
         this.confirmPassword = confirmPassword;
+    }
+
+    public List<User> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(List<User> connections) {
+        this.connections = connections;
     }
     
     

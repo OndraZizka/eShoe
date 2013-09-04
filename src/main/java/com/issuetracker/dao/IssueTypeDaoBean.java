@@ -25,14 +25,15 @@ public class IssueTypeDaoBean implements IssueTypeDao {
     @PersistenceContext(unitName = "com_IssueTracker_war_1.0-SNAPSHOTPU2")
     private EntityManager em;
      private CriteriaBuilder qb;
-
+     
     @Override
     public void insertIssueType(IssueType issueType) {
         em.persist(issueType);
     }
 
     @Override
-    public List<IssueType> getIssueTypes() {
+    public List<IssueType> getIssueTypes() {     
+        
         qb = em.getCriteriaBuilder();
         CriteriaQuery<IssueType> c = qb.createQuery(IssueType.class);
         Root<IssueType> i = c.from(IssueType.class);

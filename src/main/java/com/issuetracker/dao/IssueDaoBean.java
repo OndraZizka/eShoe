@@ -2,13 +2,17 @@ package com.issuetracker.dao;
 
 import com.issuetracker.dao.api.IssueDao;
 import com.issuetracker.dao.api.ProjectDao;
+import com.issuetracker.model.Comment;
 import com.issuetracker.model.Component;
 import com.issuetracker.model.Issue;
 import com.issuetracker.model.IssueType;
 import com.issuetracker.model.Project;
 import com.issuetracker.model.ProjectVersion;
 import com.issuetracker.model.Status;
+import com.issuetracker.model.User;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -16,6 +20,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -96,9 +101,8 @@ public class IssueDaoBean implements IssueDao {
     }
 
     @Override
-    public Issue updateIssue(Issue issue) {
-        Issue updatedIssue = em.merge(issue);
-        return updatedIssue;
+    public void updateIssue(Issue issue) {
+        em.merge(issue);
     }
 
     @Override
@@ -108,7 +112,7 @@ public class IssueDaoBean implements IssueDao {
 
     @Override
     public List<Issue> getIssuesByProject(Project project) {
-       qb = em.getCriteriaBuilder();
+        qb = em.getCriteriaBuilder();
         CriteriaQuery<Issue> c = qb.createQuery(Issue.class);
         Root<Issue> i = c.from(Issue.class);
         c.select(i);
@@ -120,6 +124,23 @@ public class IssueDaoBean implements IssueDao {
         return null;
     }
 //
+
+    @Override
+    public List<User> getIssueWatchers(Issue issue) {
+        qb = em.getCriteriaBuilder();
+        CriteriaQuery<Issue> c = qb.createQuery(Issue.class);
+        Root<Issue> i = c.from(Issue.class);
+        c.select(i);
+        c.where(qb.equal(i.get("name"), issue.getName()));
+        TypedQuery query = em.createQuery(c);
+        List<Issue> issueResults = query.getResultList();
+        if (issueResults != null && !issueResults.isEmpty()) {
+            List<User> watchers = issueResults.get(0).getWatches();
+            return watchers;
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public List<Issue.Priority> getPriorities() {
@@ -135,27 +156,28 @@ public class IssueDaoBean implements IssueDao {
 //        }
         return null;
     }
-    
+
     @Override
-    public List<Issue> getIssuesBySearch(Project project, ProjectVersion projectVersion, 
-    List<Component> projectComponents, List<IssueType> issueTypes, List<Status> statusList) {
+    public List<Issue> getIssuesBySearch(Project project, ProjectVersion projectVersion,
+            List<Component> projectComponents, List<IssueType> issueTypes, List<Status> statusList, String nameContainsText) {
         qb = em.getCriteriaBuilder();
         CriteriaQuery<Issue> c = qb.createQuery(Issue.class);
         Root<Issue> i = c.from(Issue.class);
         c.select(i);
+        Expression<String> name = i.get("name");
+        c.where(qb.like(qb.lower(name), "%" + nameContainsText.toLowerCase() + "%"));
         c.where(qb.equal(i.get("project"), project));
         c.where(qb.equal(i.get("projectVersion"), projectVersion));
-        c.where(i.get("comopnent").in(projectComponents));
+        c.where(i.get("component").in(projectComponents));
         c.where(i.get("issueType").in(issueTypes));
-        c.where(i.get("status").in(statusList));
-        
+        // c.where(i.get("status").in(statusList));
+
         List<Issue> results = em.createQuery(c).getResultList();
         if (results != null && !results.isEmpty()) {
             return results;
         }
         return null;
     }
-
 //    public void test() {
 //        qb = em.getCriteriaBuilder();
 //        CriteriaQuery<Issue> c = qb.createQuery(Issue.class);
@@ -165,4 +187,22 @@ public class IssueDaoBean implements IssueDao {
 //        System.out.println(i.get("name"));
 //   
 //    }
+
+    @Override
+    public List<Comment> getComments(Issue issue) {
+        Logger.getLogger(IssueDaoBean.class.getName()).log(Level.SEVERE, issue.getName());
+        qb = em.getCriteriaBuilder();
+        CriteriaQuery<Issue> c = qb.createQuery(Issue.class);
+        Root<Issue> i = c.from(Issue.class);
+        c.select(i);
+        c.where(qb.equal(i.get("name"), issue.getName()));
+        TypedQuery query = em.createQuery(c);
+        List<Issue> issueResults = query.getResultList();
+        if (issueResults != null && !issueResults.isEmpty()) {
+            List<Comment> comments = issueResults.get(0).getComments();
+            return comments;
+        } else {
+            return null;
+        }
+    }
 }

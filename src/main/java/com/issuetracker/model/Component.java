@@ -5,6 +5,7 @@
 package com.issuetracker.model;
 
 import java.io.Serializable;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,6 +21,7 @@ public class Component implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    //@Column(unique = true)
     private String name;
 
     public Long getId() {
@@ -46,17 +48,21 @@ public class Component implements Serializable {
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Component)) {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
-        Component other = (Component) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Component other = (Component) obj;
+        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
             return false;
         }
         return true;
     }
+
+   
 
     @Override
     public String toString() {
