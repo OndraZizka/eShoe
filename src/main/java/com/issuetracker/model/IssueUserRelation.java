@@ -1,26 +1,24 @@
 package com.issuetracker.model;
 
+import static com.issuetracker.web.Constants.JPATablePreffix;
+import javax.persistence.*;
 import java.io.Serializable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "IssueUserRelation")
 public class IssueUserRelation implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+//    @ManyToOne
     @JoinColumn(name="userId")
-    private User user;
+    @Column(name = "username")//??
+    private String user;
     @ManyToOne
     @JoinColumn(name="issueId")
     private Issue issue;
@@ -35,11 +33,11 @@ public class IssueUserRelation implements Serializable {
         this.id = id;
     }
 
-    public User getUser() {
+    public String getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(String user) {
         this.user = user;
     }
 
@@ -68,15 +66,11 @@ public class IssueUserRelation implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof IssueUserRelation)) {
             return false;
         }
         IssueUserRelation other = (IssueUserRelation) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 
     @Override

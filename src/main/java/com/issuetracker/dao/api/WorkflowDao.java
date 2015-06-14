@@ -1,6 +1,7 @@
 package com.issuetracker.dao.api;
 
 import com.issuetracker.model.Workflow;
+
 import java.util.List;
 
 /**
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public interface WorkflowDao {
     
-    void insertWorkflow(Workflow workflow);
+    void insert(Workflow workflow);
     
     List<Workflow> getWorkflows();
     
@@ -18,4 +19,8 @@ public interface WorkflowDao {
     Workflow getWorkflowById(Long id);
     
     void update(Workflow workflow);
+
+    Workflow getWorkflowByName(String name);
+
+    boolean isWorkflowUsed(Workflow workflow);
 }

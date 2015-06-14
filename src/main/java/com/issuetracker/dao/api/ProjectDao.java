@@ -3,7 +3,10 @@ package com.issuetracker.dao.api;
 import com.issuetracker.model.Component;
 import com.issuetracker.model.Project;
 import com.issuetracker.model.ProjectVersion;
+import com.issuetracker.model.Workflow;
+
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -11,7 +14,7 @@ import java.util.List;
  */
 public interface ProjectDao {
     
-    void insertProject(Project project);
+    void insert(Project project);
     
     void update(Project project);
     
@@ -28,4 +31,10 @@ public interface ProjectDao {
     Project getProjectById(Long id);
     
     boolean isProjectNameInUse(String projectName);
+
+    List<Project> getProjectsByIds(Set<Long> projectIds);
+
+    Set<Long> getProjectsIDs();
+
+    List<Project> getProjectsByIdsAndWorkflow(Workflow workflow, Set<Long> projetsIdsWithRights);
 }

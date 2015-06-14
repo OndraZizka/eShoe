@@ -1,68 +1,124 @@
 package com.issuetracker.model;
 
-import java.io.Serializable;
-import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
+
+import com.github.holmistr.esannotations.indexing.annotations.*;
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Issue")
+@Indexed(index = "issues", type = "issue")
 public class Issue implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long issueId;
-//    @Column(unique = true)
+    @DocumentId
+    @Field(name = "id")
+    private Long id;
+
+    @Field
     private String name;
+
+    @Field
+    private String summary;
+
+    @Lob
+    @Field
     private String description;
+
+    @IndexEmbedded(name = "issue_type", depth = 1)
     @ManyToOne(cascade = CascadeType.MERGE)
     private IssueType issueType;
+
+    @Field
+    @Analyzer(name = "issueTypeNameAnalyzer", tokenizer = "keyword", tokenFilters = "lowercase")
     private Priority priority;
+
+    @Field
+    @com.github.holmistr.esannotations.indexing.annotations.Date
+    @Temporal(javax.persistence.TemporalType.DATE)
+    private Date created = new Date();
+
+    @Field
+    @com.github.holmistr.esannotations.indexing.annotations.Date
+    @Temporal(javax.persistence.TemporalType.DATE)
+    private Date updated;
+
+    @IndexEmbedded(depth = 1)
     @ManyToOne
-//    private Status status;
     private Status status;
+
     @ManyToOne
     private Resolution resolution;
-    @ManyToOne
-    private User creator;
-    @ManyToOne
-    private User owner;
+
+    @Field
+    private String creator;
+
+    @Field
+    private String assignee;
+
+    @IndexEmbedded(depth = 1)
     @ManyToOne(cascade = CascadeType.MERGE)
     private Project project;
+
     private String fileLocation;
-    @ManyToMany(fetch = FetchType.EAGER)
+
+    @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    List<User> watches;
+    private List<String> watchers;
+
 //    @ManyToMany()
-//    List<User> votes;
+//    List<String> votes;
+
     @ManyToOne
-    Component component;
-    @ManyToOne
-    ProjectVersion projectVersion;
+    private Component component;
     
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+    private List<ProjectVersion> affectedVersions;
+    
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
-    List<Comment> comments;
+    @IndexEmbedded(depth = 1)
+    private List<Comment> comments;
+    
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<CustomFieldIssueValue> customFields;
+    
+//    @OneToMany(mappedBy="isRelatedIssue", cascade= CascadeType.ALL)
+//    private List<IssuesRelationship> isRelated;
+    
+    @OneToMany(fetch = FetchType.EAGER, cascade= CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<IssuesRelationship> relatesTo;
+  
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(value = FetchMode.SUBSELECT)
+    @NotFound(action = NotFoundAction.IGNORE)  
+    private Set<Permission> permissions;
+
 
     //<editor-fold defaultstate="collapsed" desc="getter/setter">
-    public Long getIssueId() {
-        return issueId;
+    public Long getId() {
+        return id;
     }
 
-    public void setIssueId(Long issueId) {
-        this.issueId = issueId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -105,20 +161,20 @@ public class Issue implements Serializable {
         this.resolution = resolution;
     }
 
-    public User getCreator() {
+    public String getCreator() {
         return creator;
     }
 
-    public void setCreator(User creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 
-    public User getOwner() {
-        return owner;
+    public String getAssignee() {
+        return assignee;
     }
 
-    public void setOwner(User owner) {
-        this.owner = owner;
+    public void setAssignee(String assignee) {
+        this.assignee = assignee;
     }
 
     public Project getProject() {
@@ -129,12 +185,12 @@ public class Issue implements Serializable {
         this.project = project;
     }
 
-    public List<User> getWatches() {
-        return watches;
+    public List<String> getWatchers() {
+        return watchers;
     }
 
-    public void setWatches(List<User> watches) {
-        this.watches = watches;
+    public void setWatchers(List<String> watches) {
+        this.watchers = watches;
     }
 
     public List<Comment> getComments() {
@@ -144,14 +200,28 @@ public class Issue implements Serializable {
     public void setComments(List<Comment> comments) {
         this.comments = comments;
     }
-    
-    
 
-//    public List<User> getVotes() {
+    public List<CustomFieldIssueValue> getCustomFields() {
+        return customFields;
+    }
+
+    public void setCustomFields(List<CustomFieldIssueValue> customFields) {
+        this.customFields = customFields;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+//    public List<String> getVotes() {
 //        return votes;
 //    }
 //
-//    public void setVotes(List<User> votes) {
+//    public void setVotes(List<String> votes) {
 //        this.votes = votes;
 //    }
 
@@ -171,12 +241,12 @@ public class Issue implements Serializable {
         this.issueType = issueType;
     }
 
-    public ProjectVersion getProjectVersion() {
-        return projectVersion;
+    public List<ProjectVersion> getAffectedVersions() {
+        return affectedVersions;
     }
 
-    public void setProjectVersion(ProjectVersion projectVersion) {
-        this.projectVersion = projectVersion;
+    public void setAffectedVersions(List<ProjectVersion> affectedVersions) {
+        this.affectedVersions = affectedVersions;
     }
 
     public String getFileLocation() {
@@ -187,11 +257,57 @@ public class Issue implements Serializable {
         this.fileLocation = fileLocation;
     }
 
-    //</editor-fold>
-//    public enum Status {
-//
-//        NEW, MODIFIED, ON_QA, VERIFIED, CLOSED, REOPENED
+//    public List<IssuesRelationship> getIsRelated() {
+//        return isRelated;
 //    }
+//
+//    public void setIsRelated(List<IssuesRelationship> isRelated) {
+//        this.isRelated = isRelated;
+//    }
+
+    public List<IssuesRelationship> getRelatesTo() {
+        return relatesTo;
+    }
+
+    public void setRelatesTo(List<IssuesRelationship> relatesTo) {
+        this.relatesTo = relatesTo;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public Date getUpdated() {
+        return updated;
+    }
+
+    public void setCreated(Date date) {
+        this.created = new Date(date.getTime());
+    }
+
+    @PrePersist
+    public void setCreationDate() {
+        this.created = new Date();
+    }
+
+    @PreUpdate
+    public void setUpdatedDate() {
+        this.updated = new Date();
+    }
+
+    public void setUpdated(Date date) {
+        this.updated = new Date(date.getTime());
+    }
+    
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
+    }
+
+    //</editor-fold>
 
     public enum Priority {
 
@@ -201,29 +317,25 @@ public class Issue implements Serializable {
         MEDIUM_LOW,
         LOW;
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (issueId != null ? issueId.hashCode() : 0);
+        hash += (id != null ? id.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Issue)) {
             return false;
         }
         Issue other = (Issue) object;
-        if ((this.issueId == null && other.issueId != null) || (this.issueId != null && !this.issueId.equals(other.issueId))) {
-            return false;
-        }
-        return true;
+        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 
     @Override
     public String toString() {
-        return "com.issuetracker.Issue[ id=" + issueId + " ]";
+        return "com.issuetracker.Issue[ id=" + id + " ]";
     }
 }

@@ -1,22 +1,25 @@
 package com.issuetracker.model;
 
+import com.github.holmistr.esannotations.indexing.annotations.Analyzer;
+import com.github.holmistr.esannotations.indexing.annotations.Field;
+import static com.issuetracker.web.Constants.JPATablePreffix;
+
+import javax.persistence.*;
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "IssueType")
 public class IssueType implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Field
+    @Analyzer(name = "issueTypeNameAnalyzer", tokenizer = "keyword", tokenFilters = "lowercase")
     @Column(unique = true)
     private String name;
 
@@ -28,37 +31,33 @@ public class IssueType implements Serializable {
         this.id = id;
     }
 
-    public String getname() {
+    public String getName() {
         return name;
     }
 
-    public void setname(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        hash += (name != null ? name.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof IssueType)) {
             return false;
         }
         IssueType other = (IssueType) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return (this.name != null || other.name == null) && (this.name == null || this.name.equals(other.name));
     }
 
     @Override
     public String toString() {
-        return "com.issuetracker.IssueType[ id=" + id + " ]";
+        return "IssueType{" + "id=" + id + ", name=" + name + '}';
     }
-    
+
 }

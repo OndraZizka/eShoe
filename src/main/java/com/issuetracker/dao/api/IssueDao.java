@@ -1,14 +1,13 @@
 package com.issuetracker.dao.api;
 
+
 import com.issuetracker.model.Comment;
 import com.issuetracker.model.Component;
 import com.issuetracker.model.Issue;
-import com.issuetracker.model.Issue.Priority;
 import com.issuetracker.model.IssueType;
 import com.issuetracker.model.Project;
 import com.issuetracker.model.ProjectVersion;
 import com.issuetracker.model.Status;
-import com.issuetracker.model.User;
 import java.util.List;
 
 /**
@@ -21,24 +20,16 @@ public interface IssueDao {
     
     Issue getIssueById(Long id);
     
-    Issue getIssueByName(String name);
+    void insert(Issue issue);
     
-    void addIssue(Issue issue);
+    void update(Issue issue);
     
-    void updateIssue(Issue issue);
+    void remove(Issue issue);
     
-    void removeIssue(Issue issue);
-    
-    List<Issue> getIssuesByProject(Project project);
-    
-    List<Issue> getIssuesByProjectName(String projectName);
-    
-    List<Priority> getPriorities();
-    
-    List<Issue> getIssuesBySearch(Project project, ProjectVersion projectVersion, 
+    List<Issue> getIssuesBySearch(Project project, List<ProjectVersion> affectedVersions, 
     Component component, List<IssueType> issueTypes, List<Status> statusList, String nameContainsText);
     
-    List<User> getIssueWatchers(Issue issue);
+    List<String> getIssueWatchers(Issue issue);
     
     List<Comment> getComments(Issue issue);
     

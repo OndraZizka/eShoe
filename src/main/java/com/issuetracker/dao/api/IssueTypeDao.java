@@ -1,6 +1,7 @@
 package com.issuetracker.dao.api;
 
 import com.issuetracker.model.IssueType;
+
 import java.util.List;
 
 /**
@@ -9,7 +10,15 @@ import java.util.List;
  */
 public interface IssueTypeDao {
     
-    void insertIssueType(IssueType issueType);
+    void insert(IssueType issueType);
+    
+    void remove(IssueType sueType);
     
     List<IssueType> getIssueTypes();
+
+    boolean isIssueTypeUsed(IssueType issueType);
+
+    IssueType getIssueTypeByName(String name);
+
+    void update(IssueType issueType);
 }

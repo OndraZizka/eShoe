@@ -1,25 +1,29 @@
 package com.issuetracker.model;
 
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import java.io.Serializable;
-import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 
 /**
  *
- * @author mgottval
+ * @author vramik
  */
 @Entity
+@Table(name = JPATablePreffix + "Role")
 public class Role implements Serializable {
+    
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToMany
-    private List<Permission> permission;
+
+    @Column(unique = true)
+    private String name;
 
     public Long getId() {
         return id;
@@ -29,37 +33,11 @@ public class Role implements Serializable {
         this.id = id;
     }
 
-    public List<Permission> getPermission() {
-        return permission;
+    public String getName() {
+        return name;
     }
 
-    public void setPermission(List<Permission> permission) {
-        this.permission = permission;
+    public void setName(String name) {
+        this.name = name;
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Role)) {
-            return false;
-        }
-        Role other = (Role) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "com.issuetracker.Role[ id=" + id + " ]";
-    }
-    
 }

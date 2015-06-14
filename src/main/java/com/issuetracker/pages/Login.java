@@ -1,44 +1,16 @@
 package com.issuetracker.pages;
 
-import com.issuetracker.pages.component.login.LoginForm;
-import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import com.issuetracker.pages.layout.PageLayout;
+import static com.issuetracker.web.Utils.parsePageClassFromPageParams;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
- *
- * @author mgottval
+ * 
+ * @author vramik
  */
 public class Login extends PageLayout {
 
-    private LoginForm loginForm;
-
-
-    public Login() {
-        add(new FeedbackPanel("feedback"));
-
-
-        loginForm = new LoginForm("loginForm");
-        add(loginForm);
-
-        final Link forgotPasswordLink = new Link("forgotPasswordLink") {
-            @Override
-            public void onClick() {
-                setResponsePage(ForgotPassword.class);
-            }
-        };
-
-        add(forgotPasswordLink);
-
-        final Link signUpLink = new Link("signUpLink") {
-            @Override
-            public void onClick() {
-                setResponsePage(Register.class);
-            }
-        };
-
-        add(signUpLink);
-
-
-
+    public Login(PageParameters parameters) {
+        setResponsePage(parsePageClassFromPageParams(parameters.get("page")), parameters.remove("page"));
     }
 }

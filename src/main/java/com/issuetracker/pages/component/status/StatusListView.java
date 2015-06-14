@@ -1,15 +1,10 @@
 package com.issuetracker.pages.component.status;
 
-import com.issuetracker.dao.api.StatusDao;
-import com.issuetracker.dao.api.WorkflowDao;
 import com.issuetracker.model.Status;
 import com.issuetracker.model.Workflow;
-import com.issuetracker.pages.AddTransition;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.inject.Inject;
+import com.issuetracker.pages.transition.AddTransition;
+import com.issuetracker.pages.status.EditStatus;
+import com.issuetracker.service.api.StatusService;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -18,42 +13,35 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.inject.Inject;
+import java.util.List;
+
 
 /**
  *
  * @author mgottval
+ * @param <T>
  */
 public class StatusListView<T extends Status> extends Panel {
 
     @Inject
-    private StatusDao statusDao;
-    @Inject
-    private WorkflowDao workflowDao;
+    private StatusService statusService;
     private List<Status> statuses;
-    private ListView listViewStatus;
+    private final ListView listViewStatus;
     private Workflow workflow;
 
     public StatusListView(String id, IModel<List<Status>> statusesModel, final IModel<Workflow> workflowModel) {
         super(id);
-        //boolean isWorkflowPresent = false;
         final boolean workflowPresent;
-        String s;
-//        Logger.getLogger(StatusListView.class.getName()).log(Level.SEVERE, s);
-        statuses = statusDao.getStatuses();
-        if (statuses == null) {
-            statuses = new ArrayList<Status>();
-        }
+        statuses = statusService.getStatuses();
 
         if (workflowModel != null) {
-            Logger.getLogger(StatusListView.class.getName()).log(Level.SEVERE, workflowModel.getObject().getName());
-           // isWorkflowPresent = true;
             workflowPresent = true;
             workflow = workflowModel.getObject();
         } else {
             workflowPresent = false;
         }
-        s = String.valueOf(workflowPresent);
-        Logger.getLogger(StatusListView.class.getName()).log(Level.SEVERE, s);
+        
         listViewStatus = new ListView<Status>("statusList", statusesModel) {
             @Override
             protected void populateItem(final ListItem<Status> item) {
@@ -75,14 +63,25 @@ public class StatusListView<T extends Status> extends Panel {
 
                 item.add(new Label("name", status.getName()).setVisible(!workflowPresent));
 
-                item.add(new Link<Status>("delete", item.getModel()) {
+                item.add(new Link<Status>("remove", item.getModel()) {
                     @Override
                     public void onClick() {
                         statuses.remove(status);
-                        statusDao.remove(status);
+                        statusService.remove(status);
                     }
-                }.setVisible(!workflowPresent));
-
+                }.setEnabled(!statusService.isStatusUsed(status)));
+                item.add(new Link("edit") {
+                    @Override
+                    public void onClick() {
+                        PageParameters parameters = new PageParameters();
+                        if (workflowPresent) {
+                            parameters.add("workflow", workflow.getId());
+                        }
+                        parameters.add("statusName", status.getName());
+                        parameters.add("page", getPage().getClass().getName());
+                        setResponsePage(EditStatus.class, parameters);
+                    }
+                });
             }
         };
         add(listViewStatus);

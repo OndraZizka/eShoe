@@ -1,16 +1,19 @@
 package com.issuetracker.model;
 
-import java.io.Serializable;
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
+import javax.persistence.Table;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Resolution")
 public class Resolution implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -43,15 +46,11 @@ public class Resolution implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Resolution)) {
             return false;
         }
         Resolution other = (Resolution) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 
     @Override

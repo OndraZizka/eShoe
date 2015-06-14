@@ -2,7 +2,8 @@ package com.issuetracker.dao;
 
 import com.issuetracker.dao.api.WorkflowDao;
 import com.issuetracker.model.Workflow;
-import java.util.List;
+import java.util.ArrayList;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -11,6 +12,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.List;
 
 /**
  *
@@ -19,12 +21,12 @@ import javax.persistence.criteria.Root;
 @Stateless
 public class WorkflowDaoBean implements WorkflowDao {
 
-    @PersistenceContext(unitName = "issuetrackerPU2")
+    @PersistenceContext
     private EntityManager em;
-     private CriteriaBuilder qb;
+    private CriteriaBuilder qb;
      
     @Override
-    public void insertWorkflow(Workflow workflow) {
+    public void insert(Workflow workflow) {
         em.persist(workflow);
     }
 
@@ -38,8 +40,9 @@ public class WorkflowDaoBean implements WorkflowDao {
         List<Workflow> results =  q.getResultList();
         if (results != null && !results.isEmpty()) {
             return results;
+        } else {
+            return new ArrayList<>();
         }
-        return null;
     }
 
     
@@ -68,5 +71,26 @@ public class WorkflowDaoBean implements WorkflowDao {
     @Override
     public void remove(Workflow workflow) {
         em.remove(em.contains(workflow) ? workflow : em.merge(workflow));
+    }
+
+    @Override
+    public Workflow getWorkflowByName(String name) {
+        qb = em.getCriteriaBuilder();
+        CriteriaQuery<Workflow> workflowQuery = qb.createQuery(Workflow.class);
+        Root<Workflow> p = workflowQuery.from(Workflow.class);
+        Predicate pCondition = qb.equal(p.get("name"), name);
+        workflowQuery.where(pCondition);
+        TypedQuery<Workflow> pQuery = em.createQuery(workflowQuery);
+        List<Workflow> workflowResults = pQuery.getResultList();
+        if (workflowResults != null && !workflowResults.isEmpty()) {
+            return workflowResults.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isWorkflowUsed(Workflow workflow) {
+        return getWorkflowById(workflow.getId()) != null;
     }
 }

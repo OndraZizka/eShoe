@@ -1,17 +1,21 @@
 package com.issuetracker.model;
 
-import java.io.Serializable;
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
+import javax.persistence.Table;
 
 /**
  *
  * @author mgottval
  */
 @Entity
-public class ProjectVersion implements Serializable {
+@Table(name = JPATablePreffix + "ProjectVersion")
+public class ProjectVersion implements Serializable, Comparable<ProjectVersion> {
+    
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,8 +36,6 @@ public class ProjectVersion implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-    
-    
 
     @Override
     public int hashCode() {
@@ -51,17 +53,18 @@ public class ProjectVersion implements Serializable {
             return false;
         }
         final ProjectVersion other = (ProjectVersion) obj;
-        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
-            return false;
-        }
-        return true;
+        return !((this.name == null) ? (other.name != null) : !this.name.equals(other.name));
     }
-
-    
 
     @Override
     public String toString() {
-        return "com.issuetracker.model.ProjectVersion[ id=" + id + " ]";
+//        return "com.issuetracker.model.ProjectVersion[ id=" + getId() + ", name=" + getName() + " ]";
+        return "[ id=" + getId() + ", name=" + getName() + " ]";
+    }
+
+    @Override
+    public int compareTo(ProjectVersion p) {
+        return getName().compareTo(p.getName());
     }
     
 }

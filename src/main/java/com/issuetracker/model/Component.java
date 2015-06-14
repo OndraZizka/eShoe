@@ -1,16 +1,19 @@
 package com.issuetracker.model;
 
-import java.io.Serializable;
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
+import javax.persistence.Table;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Component")
 public class Component implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
@@ -51,10 +54,7 @@ public class Component implements Serializable {
             return false;
         }
         final Component other = (Component) obj;
-        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
-            return false;
-        }
-        return true;
+        return !((this.name == null) ? (other.name != null) : !this.name.equals(other.name));
     }
 
    

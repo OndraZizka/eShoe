@@ -1,47 +1,61 @@
 package com.issuetracker.model;
 
+import com.github.holmistr.esannotations.indexing.annotations.Analyzer;
+import com.github.holmistr.esannotations.indexing.annotations.Field;
+import static com.issuetracker.web.Constants.JPATablePreffix;
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import java.util.Set;
+
+import javax.persistence.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Project")
 public class Project implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 //    @Column(unique = true, nullable = false)
+    @Field
+    @Analyzer(name = "projectNameAnalyzer", tokenizer = "keyword", tokenFilters = "lowercase")
     private String name;
-    
     private String summary;
+    private String owner;
     
-    @ManyToOne
-    private User owner;
-    
-    @ManyToMany(fetch= FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
+    @NotFound(action = NotFoundAction.IGNORE)  
     private List<ProjectVersion> versions;
     
-    @ManyToMany(fetch= FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
+    @NotFound(action = NotFoundAction.IGNORE)  
     private List<Component> components;
-
+    
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(value = FetchMode.SUBSELECT)
+    @NotFound(action = NotFoundAction.IGNORE)  
+    List<CustomField> customFields;
+    
     @OneToOne
     private Workflow workflow;
+    
+//    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+//    @Fetch(value = FetchMode.SUBSELECT)
+//    @NotFound(action = NotFoundAction.IGNORE)  
+//    @CollectionTable(joinColumns = @JoinColumn(name = "Project_id"))
+//    @Column(name = "permission_id")
+//    private Set<Permission> permissions;
     
     public Long getId() {
         return id;
@@ -49,7 +63,7 @@ public class Project implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }        
+    }
 
     public String getName() {
         return name;
@@ -67,11 +81,11 @@ public class Project implements Serializable {
         this.summary = summary;
     }
 
-    public User getOwner() {
+    public String getOwner() {
         return owner;
     }
 
-    public void setOwner(User owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 
@@ -99,31 +113,21 @@ public class Project implements Serializable {
         this.workflow = workflow;
     }
 
-   
+    public List<CustomField> getCustomFields() {
+        return customFields;
+    }
 
-    
-    
-//    @Override
-//    public int hashCode() {
-//        int hash = 0;
-//        hash += (id != null ? id.hashCode() : 0);
-//        return hash;
+    public void setCustomFields(List<CustomField> customFields) {
+        this.customFields = customFields;
+    }
+
+//    public Set<Permission> getPermissions() {
+//        return permissions;
 //    }
 //
-//    @Override
-//    public boolean equals(Object object) {
-//        // TODO: Warning - this method won't work in the case the id fields are not set
-//        if (!(object instanceof Project)) {
-//            return false;
-//        }
-//        Project other = (Project) object;
-//        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-//            return false;
-//        }
-//        return true;
+//    public void setPermissions(Set<Permission> permissions) {
+//        this.permissions = permissions;
 //    }
-    
-    
 
     @Override
     public int hashCode() {
@@ -141,17 +145,12 @@ public class Project implements Serializable {
             return false;
         }
         final Project other = (Project) obj;
-        if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
-            return false;
-        }
-        return true;
+        return !((this.name == null) ? (other.name != null) : !this.name.equals(other.name));
     }
-    
-    
 
     @Override
     public String toString() {
-        return "com.issuetracker.Project[ id=" + name + " ]";
+        return "Project{" + "id=" + id + ", name=" + name + ", owner=" + owner + '}';
     }
-    
+
 }

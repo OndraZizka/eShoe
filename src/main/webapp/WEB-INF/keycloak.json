@@ -1,0 +1,10 @@
+{
+  "realm": "issue-tracker",
+  "realm-public-key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC/bRw1JxRJiXbiY9bm9PJoHwUztIc2xk6wFLKvFEav37ShmhDlYo7gAvD5ft/DCxGkhPvHCG7rO3Q6Cwe2ghEmTJv0H84klTdWqm+WYL/LGOO+ujQlvD7198BHTNrJx/LiTMIGF0ZdegOsNiy0T8Qn2smvxw6pfK7kIdfYLWXTPQIDAQAB",
+  "auth-server-url": "http://localhost:8080/auth",
+  "ssl-required": "external",
+  "resource": "issue-tracker",
+  "credentials": {
+    "secret": "b366b3fa-5c50-4ad2-b3ad-0eaf32f6e8b1"
+  }
+}

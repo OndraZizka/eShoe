@@ -1,20 +1,26 @@
 package com.issuetracker.pages.component.comment;
 
-import com.issuetracker.dao.api.CommentDao;
-import com.issuetracker.dao.api.IssueDao;
 import com.issuetracker.model.Comment;
 import com.issuetracker.model.Issue;
-import java.util.ArrayList;
-import java.util.List;
-import javax.inject.Inject;
+import com.issuetracker.model.TypeId;
+import com.issuetracker.service.api.CommentService;
+import com.issuetracker.service.api.IssueService;
+import com.issuetracker.service.api.PermissionService;
+import static com.issuetracker.web.Constants.roles;
+import static com.issuetracker.web.security.KeycloakAuthSession.*;
+import static com.issuetracker.web.security.KeycloakService.getRealmRoles;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.wicket.model.PropertyModel;
+
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.form.ListMultipleChoice;
+import org.jboss.logging.Logger;
 
 /**
  *
@@ -22,51 +28,55 @@ import org.apache.wicket.model.PropertyModel;
  */
 public class CommentForm extends Panel {
 
-    @Inject
-    private CommentDao commentDao;
-    @Inject
-    private IssueDao issueDao;
-    private Form<Comment> commentForm;
+    private final Logger log = Logger.getLogger(CommentForm.class);
+    
+    @Inject private IssueService issueService;
+    @Inject private PermissionService permissionService;
+    @Inject private CommentService commentService;
+    
     private Comment comment;
-    private List<Comment> comments;
     private Issue issue;
-
+    private List<String> selectedRoles = new ArrayList<>();
+    List<String> availableRoles = getRealmRoles();
+    
     public CommentForm(String id, final IModel<Issue> issueModel) {
         super(id);
-
+        
         issue = issueModel.getObject();
 
-
-        add(new FeedbackPanel("feedback"));
-
-        commentForm = new Form<Comment>("commentForm") {
+        Form<Comment> commentForm = new Form<Comment>("commentForm") {
             @Override
             protected void onSubmit() {
-//                comment = new Comment();
-//                commentDao.insert(comment);
-                try {
-                    comments = issue.getComments();
-                } catch (NullPointerException e) {
-                    comments = new ArrayList<Comment>();
-                    Logger.getLogger(CommentForm.class.getName()).log(Level.SEVERE, "Ted se to loguje - melo by jen poprve");
-                }
-//                comments = issueDao.getComments(issue);
-                comments.add(comment);
-                issue.setComments(comments);
-                issueDao.updateIssue(issue);
-//                comment = new Comment();
-                String s = "";
-                for (Comment comment1 : issue.getComments()) {
-                    s = s + comment1.getContent();
-                }
-                Logger.getLogger(CommentForm.class.getName()).log(Level.SEVERE, s);
+                comment.setAuthor(getIDToken().getPreferredUsername());
+                
+                if (!selectedRoles.isEmpty() && (availableRoles.size() != selectedRoles.size())) {//if NOT empty or all
+                    comment = commentService.insert(comment);//this sets comment's id
+                    permissionService.createPermissions(TypeId.comment, comment, roles.getProperty("it.comment.browse"), TypeId.comment, selectedRoles.toArray(new String[selectedRoles.size()]));
+                } 
+                
+                issueService.insertComment(issue, comment);
+                
                 comment = new Comment();
+                
+                for (Component c : getPage().visitChildren().filterByClass(CommentListView.class)) {
+                    ((CommentListView) c).updateModel();
+                }
+                
+                //reset the select
+                selectedRoles = null;
             }
         };
         add(commentForm);
 
-        commentForm.add(new TextArea<String>("content", new PropertyModel<String>(this, "comment.content")));
-
+        commentForm.add(new TextArea<>("content", new PropertyModel<String>(this, "comment.content")));
+        
+        
+        final ListMultipleChoice<String> roles = new ListMultipleChoice<>("roles", 
+                new PropertyModel<List<String>>(this, "selectedRoles"),
+                availableRoles);
+        roles.setOutputMarkupId(true);
+        roles.setMaxRows(availableRoles.size());
+        commentForm.add(roles);
     }
 
     public Comment getComment() {
@@ -83,5 +93,13 @@ public class CommentForm extends Panel {
 
     public void setIssue(Issue issue) {
         this.issue = issue;
+    }
+
+    public List<String> getSelectedRoles() {
+        return selectedRoles;
+    }
+
+    public void setSelectedRoles(List<String> selectedRoles) {
+        this.selectedRoles = selectedRoles;
     }
 }

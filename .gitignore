@@ -2,4 +2,7 @@ target
 /src_/
 .~lock*
 
+/nbactions.xml
 /docs/sql/model.mwb.bak
+/nb-configuration.xml
+/hs_err_pid6311.log

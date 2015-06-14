@@ -1,27 +1,24 @@
 package com.issuetracker.model;
 
+import static com.issuetracker.web.Constants.JPATablePreffix;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Workflow")
 public class Workflow implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true)
     private String name;
-    @ManyToMany
-    private List<Status> statuses;
-    @ManyToMany
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Transition> transitions;
 
     public Long getId() {
@@ -38,14 +35,6 @@ public class Workflow implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Status> getStatuses() {
-        return statuses;
-    }
-
-    public void setStatuses(List<Status> statuses) {
-        this.statuses = statuses;
     }
     
     public List<Transition> getTransitions() {
@@ -65,15 +54,11 @@ public class Workflow implements Serializable {
     
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Workflow)) {
             return false;
         }
         Workflow other = (Workflow) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return (this.id != null || other.id == null) && (this.id == null || this.id.equals(other.id));
     }
 
     @Override

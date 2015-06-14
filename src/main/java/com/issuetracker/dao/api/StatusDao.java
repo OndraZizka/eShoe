@@ -1,6 +1,7 @@
 package com.issuetracker.dao.api;
 
 import com.issuetracker.model.Status;
+
 import java.util.List;
 
 /**
@@ -18,4 +19,8 @@ public interface StatusDao {
     Status getStatusById(Long id);
     
     Status getStatusByName(String name);
+
+    boolean isStatusUsed(Status status);
+
+    void update(Status status);
 }

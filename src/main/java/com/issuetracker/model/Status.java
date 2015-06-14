@@ -1,21 +1,32 @@
 package com.issuetracker.model;
 
-import java.io.Serializable;
+import com.github.holmistr.esannotations.indexing.annotations.Analyzer;
+import com.github.holmistr.esannotations.indexing.annotations.Field;
+import static com.issuetracker.web.Constants.JPATablePreffix;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import java.io.Serializable;
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Table;
 
 /**
  *
  * @author mgottval
  */
 @Entity
+@Table(name = JPATablePreffix + "Status")
 public class Status implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Field
+    @Analyzer(name = "statusNameAnalyzer", tokenizer = "keyword", tokenFilters = "lowercase")
+    @Column(unique = true)
     private String name;
 //    @ManyToMany
 //    private List<Status> statuses;
@@ -37,39 +48,34 @@ public class Status implements Serializable {
         this.name = name;
     }
 
-//    public List<Status> getStatuses() {
-//        return statuses;
-//    }
-//
-//    public void setStatuses(List<Status> statuses) {
-//        this.statuses = statuses;
-//    }
+    public Status(String name) {
+        this.name = name;
+    }
     
-    
+    public Status() {
+    }
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.name);
         return hash;
     }
 
     @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Status)) {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
-        Status other = (Status) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+        if (getClass() != obj.getClass()) {
             return false;
         }
-        return true;
+        final Status other = (Status) obj;
+        return Objects.equals(this.name, other.name);
     }
 
     @Override
     public String toString() {
-        return "com.issuetracker.StatusName[ id=" + id + " ]";
+        return "Status{" + "id=" + id + ", name=" + name + '}';
     }
-    
 }
